@@ -78,9 +78,7 @@ async function run() {
       res.send(result);
     });
     // // carts collection
-    // app.get("/carts", async (req, res) => {
-    //   const result = await cartCollection.find().toArray();
-    
+  
     // users related api
     app.get("/users",  async (req, res) => {
       const result = await usersCollection.find().toArray();
