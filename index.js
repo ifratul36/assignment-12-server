@@ -80,9 +80,7 @@ async function run() {
     // // carts collection
     // app.get("/carts", async (req, res) => {
     //   const result = await cartCollection.find().toArray();
-    //   res.send(result);
-    // });
-
+    
     // users related api
     app.get("/users",  async (req, res) => {
       const result = await usersCollection.find().toArray();
