@@ -77,8 +77,7 @@ async function run() {
       const result = await cartCollection.insertOne(cartItem);
       res.send(result);
     });
-    // // carts collection
-  
+    
     // users related api
     app.get("/users",  async (req, res) => {
       const result = await usersCollection.find().toArray();
