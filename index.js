@@ -258,11 +258,6 @@ async function run() {
     });
 
 
-    // app.get("/tours", verifyToken, async (req, res) => {
-    //   const email = req.query.email;
-    //   const query = { email: email };
-
-
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
