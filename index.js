@@ -257,6 +257,26 @@ async function run() {
       res.send(result);
     });
 
+
+    // app.get("/tours", verifyToken, async (req, res) => {
+    //   const email = req.query.email;
+    //   const query = { email: email };
+    //   const result = await tourCollection.find(query).toArray();
+    //   res.send(result);
+    // });
+
+    // app.delete("/users/:id", verifyToken, verifyAdmin, async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id: new ObjectId(id) };
+    //   const result = await usersCollection.deleteOne(query);
+    //   res.send(result);
+    // });
+    // app.delete("/candidates/:id", verifyToken, async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id: new ObjectId(id) };
+    //   const result = await candidatesCollection.deleteOne(query);
+    
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
