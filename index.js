@@ -24,12 +24,14 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
+    // await client.connect();    // Candidates collection
+    const candidatesCollection = client
+      .db("assignmentDB")
+      .collection("candidates");
     const usersCollection = client.db("assignmentDB").collection("users");
     const tourCollection = client.db("assignmentDB").collection("tours");
     const cartCollection = client.db("assignmentDB").collection("carts");
 
-    
     // jwt related api
     app.post("/jwt", async (req, res) => {
       const user = req.body;
@@ -66,6 +68,68 @@ async function run() {
       next();
     };
 
+    // POST endpoint for submitting tour guide applications
+    app.post("/candidates", verifyToken, async (req, res) => {
+      try {
+        const { title, reason, cvLink } = req.body;
+
+        // Validate required fields
+        if (!title || !reason || !cvLink) {
+          return res.status(400).send({ message: "All fields are required." });
+        }
+
+        // Validate CV link (basic validation)
+        const isValidURL = (url) => {
+          const pattern = new RegExp(
+            "^(https?:\\/\\/)" + // Protocol
+              "((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.?)+[a-z]{2,}|" + // Domain name
+              "((\\d{1,3}\\.){3}\\d{1,3}))" + // OR IP (v4) address
+              "(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*" + // Port and path
+              "(\\?[;&a-z\\d%_.~+=-]*)?" + // Query string
+              "(\\#[-a-z\\d_]*)?$",
+            "i"
+          );
+          return !!pattern.test(url);
+        };
+
+        if (!isValidURL(cvLink)) {
+          return res.status(400).send({ message: "Invalid CV link." });
+        }
+
+        // Extract user ID from JWT (already verified)
+        const userId = req.decoded.id;
+        const email = req.decoded.email;
+
+        // Prepare the application data
+        const application = {
+          userId,
+          name: req.decoded.displayName || "Anonymous",
+          email,
+          applicationTitle: title,
+          applicationReason: reason,
+          cvLink,
+          applicationDate: new Date(),
+          status: "Pending", // Default status
+        };
+
+        // Save the application to the database
+        const result = await candidatesCollection.insertOne(application);
+
+        res.status(200).send({
+          message: "Your application has been submitted successfully.",
+          insertedId: result.insertedId,
+        });
+      } catch (error) {
+        console.error("Error submitting application:", error);
+        res.status(500).send({ message: "Failed to submit the application." });
+      }
+    });
+
+    // carts collection
+    app.get("/candidates", async (req, res) => {
+      const result = await candidatesCollection.find().toArray();
+      res.send(result);
+    });
     // carts collection
     app.get("/carts", async (req, res) => {
       const result = await cartCollection.find().toArray();
@@ -77,9 +141,9 @@ async function run() {
       const result = await cartCollection.insertOne(cartItem);
       res.send(result);
     });
-    
+
     // users related api
-    app.get("/users",  async (req, res) => {
+    app.get("/users", async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
@@ -127,7 +191,7 @@ async function run() {
     app.patch(
       "/users/admin/:id",
       verifyToken,
-      
+
       async (req, res) => {
         const id = req.params.id;
         const filter = { _id: new ObjectId(id) };
@@ -140,27 +204,38 @@ async function run() {
         res.send(result);
       }
     );
-    app.patch(
-      "/users/guide/:id",
-      verifyToken,
-      async (req, res) => {
-        const id = req.params.id;
-        const filter = { _id: new ObjectId(id) };
-        const updatedDoc = {
-          $set: {
-            role: "guide",
-          },
-        };
-        const result = await usersCollection.updateOne(filter, updatedDoc);
-        res.send(result);
-      }
-    );
+    app.patch("/users/guide/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          role: "guide",
+        },
+      };
+      const result = await usersCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
 
-    app.post('tours', verifyToken, async (req, res) =>{
+    app.patch("/users/:id", async (req, res) => {
+      const item = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          name: item.name,
+          photURL: item.photURL,
+        },
+      };
+
+      const result = await menuCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+
+    app.post("tours", verifyToken, async (req, res) => {
       const tourItem = req.body;
       const result = await tourCollection.insertOne(tourItem);
       res.send(result);
-    })
+    });
 
     app.get("/tours", verifyToken, async (req, res) => {
       const email = req.query.email;
@@ -175,9 +250,12 @@ async function run() {
       const result = await usersCollection.deleteOne(query);
       res.send(result);
     });
-
-   
-
+    app.delete("/candidates/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await candidatesCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
