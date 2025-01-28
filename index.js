@@ -152,7 +152,7 @@ async function run() {
     });
 
     // story related api
-    app.get("/story", verifyToken, async (req, res) => {
+    app.get("/story",  async (req, res) => {
       const result = await storyCollection.find().toArray();
       res.send(result);
     });
@@ -281,7 +281,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/tours", verifyToken, async (req, res) => {
+    app.get("/tours", async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
       const result = await tourCollection.find(query).toArray();
