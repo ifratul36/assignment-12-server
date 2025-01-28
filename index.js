@@ -31,6 +31,8 @@ async function run() {
     const usersCollection = client.db("assignmentDB").collection("users");
     const tourCollection = client.db("assignmentDB").collection("tours");
     const cartCollection = client.db("assignmentDB").collection("carts");
+    const storyCollection = client.db("assignmentDB").collection("story");
+    const storiesCollection = client.db("assignmentDB").collection("stories");
 
     // jwt related api
     app.post("/jwt", async (req, res) => {
@@ -126,21 +128,62 @@ async function run() {
     });
 
     // carts collection
-    app.get("/candidates", async (req, res) => {
+    app.get("/candidates",  async (req, res) => {
       const result = await candidatesCollection.find().toArray();
       res.send(result);
     });
     // carts collection
-    app.get("/carts", async (req, res) => {
+    app.get("/carts", verifyToken, async (req, res) => {
       const result = await cartCollection.find().toArray();
       res.send(result);
     });
 
-    app.post("/carts", async (req, res) => {
+    app.post("/carts", verifyToken, async (req, res) => {
       const cartItem = req.body;
       const result = await cartCollection.insertOne(cartItem);
       res.send(result);
     });
+
+    // user story
+    app.post("/story", verifyToken, async (req, res) => {
+      const storyItem = req.body;
+      const result = await storyCollection.insertOne(storyItem);
+      res.send(result);
+    });
+
+    // story related api
+    app.get("/story", verifyToken, async (req, res) => {
+      const result = await storyCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.delete("/story/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await storyCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // guide story
+    app.post("/stories", verifyToken, async (req, res) => {
+      const storiesItem = req.body;
+      const result = await storiesCollection.insertOne(storiesItem);
+      res.send(result);
+    });
+
+    // story related api
+    app.get("/stories", verifyToken, async (req, res) => {
+      const result = await storiesCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.delete("/stories/:id", verifyToken, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await storiesCollection.deleteOne(query);
+      res.send(result);
+    });
+
 
     // users related api
     app.get("/users", async (req, res) => {
@@ -177,7 +220,7 @@ async function run() {
     });
 
     // users related api
-    app.post("/users", async (req, res) => {
+    app.post("/users",verifyToken, async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
       const existingUser = await usersCollection.findOne(query);
@@ -190,7 +233,7 @@ async function run() {
 
     app.patch(
       "/users/admin/:id",
-      verifyToken,
+      verifyToken, verifyAdmin,
 
       async (req, res) => {
         const id = req.params.id;
@@ -204,7 +247,8 @@ async function run() {
         res.send(result);
       }
     );
-    app.patch("/users/guide/:id", verifyToken, async (req, res) => {
+    app.patch("/users/guide/:id",
+      verifyToken, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updatedDoc = {
@@ -216,7 +260,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/users/:id", async (req, res) => {
+    app.patch("/users/:id", verifyToken, async (req, res) => {
       const item = req.body;
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -227,11 +271,11 @@ async function run() {
         },
       };
 
-      const result = await menuCollection.updateOne(filter, updatedDoc);
+      const result = await usersCollection.updateOne(filter, updatedDoc);
       res.send(result);
     });
 
-    app.post("tours", verifyToken, async (req, res) => {
+    app.post("/tours", verifyToken, async (req, res) => {
       const tourItem = req.body;
       const result = await tourCollection.insertOne(tourItem);
       res.send(result);
@@ -259,10 +303,10 @@ async function run() {
 
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.db("admin").command({ ping: 1 });
+    // console.log(
+    //   "Pinged your deployment. You successfully connected to MongoDB!"
+    // );
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
