@@ -35,8 +35,6 @@ async function run() {
     const storiesCollection = client.db("assignmentDB").collection("stories");
 
 
-    // const storyCollection = client.db("assignmentDB").collection("story");
-
     // jwt related api
     app.post("/jwt", async (req, res) => {
       const user = req.body;
