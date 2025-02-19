@@ -34,6 +34,13 @@ async function run() {
     const storyCollection = client.db("assignmentDB").collection("story");
     const storiesCollection = client.db("assignmentDB").collection("stories");
 
+    // const usersCollection = client.db("assignmentDB").collection("users");
+    // const tourCollection = client.db("assignmentDB").collection("tours");
+    // const cartCollection = client.db("assignmentDB").collection("carts");
+    // const storyCollection = client.db("assignmentDB").collection("story");
+    // const storiesCollection = client.db("assignmentDB").collection("stories");
+    // const storyCollection = client.db("assignmentDB").collection("story");
+
     // jwt related api
     app.post("/jwt", async (req, res) => {
       const user = req.body;
