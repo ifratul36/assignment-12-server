@@ -34,7 +34,7 @@ async function run() {
     const storyCollection = client.db("assignmentDB").collection("story");
     const storiesCollection = client.db("assignmentDB").collection("stories");
 
-    // const usersCollection = client.db("assignmentDB").collection("users");
+  
     // const tourCollection = client.db("assignmentDB").collection("tours");
     // const cartCollection = client.db("assignmentDB").collection("carts");
     // const storyCollection = client.db("assignmentDB").collection("story");
